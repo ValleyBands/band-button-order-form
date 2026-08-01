@@ -36,7 +36,8 @@
         input[type="text"],
         input[type="email"],
         input[type="tel"],
-        input[type="number"] {
+        input[type="number"],
+        select {
             width: 100%;
             padding: 12px;
             border: 1px solid #d1d5db; /* Light gray border */
@@ -45,6 +46,7 @@
             box-sizing: border-box;
             font-size: 1rem;
             color: #1f2937; /* Dark text */
+            background-color: #ffffff;
         }
         input[type="number"] {
             -moz-appearance: textfield; /* Firefox */
@@ -169,6 +171,15 @@
                     <label for="studentName_1">Student Name:</label>
                     <input type="text" id="studentName_1" name="studentName_1" required>
 
+                    <label for="grade_1">Grade:</label>
+                    <select id="grade_1" name="grade_1" required>
+                        <option value="" disabled selected>Select Grade</option>
+                        <option value="9th Grade">9th Grade</option>
+                        <option value="10th Grade">10th Grade</option>
+                        <option value="11th Grade">11th Grade</option>
+                        <option value="12th Grade">12th Grade</option>
+                    </select>
+
                     <label for="instrument_1">Instrument:</label>
                     <input type="text" id="instrument_1" name="instrument_1" required>
 
@@ -264,6 +275,15 @@
                 <label for="studentName_${studentCounter}">Student Name:</label>
                 <input type="text" id="studentName_${studentCounter}" name="studentName_${studentCounter}" required>
 
+                <label for="grade_${studentCounter}">Grade:</label>
+                <select id="grade_${studentCounter}" name="grade_${studentCounter}" required>
+                    <option value="" disabled selected>Select Grade</option>
+                    <option value="9th Grade">9th Grade</option>
+                    <option value="10th Grade">10th Grade</option>
+                    <option value="11th Grade">11th Grade</option>
+                    <option value="12th Grade">12th Grade</option>
+                </select>
+
                 <label for="instrument_${studentCounter}">Instrument:</label>
                 <input type="text" id="instrument_${studentCounter}" name="instrument_${studentCounter}" required>
 
@@ -329,9 +349,14 @@
 
             // Manually collect student data into a structured array
             const students = [];
-            document.querySelectorAll('.student-entry').forEach((entry, index) => {
+            let validationFailed = false;
+
+            document.querySelectorAll('.student-entry').forEach((entry) => {
+                if (validationFailed) return;
+
                 const studentId = entry.getAttribute('data-student-id');
                 const studentNameInput = document.getElementById(`studentName_${studentId}`);
+                const gradeInput = document.getElementById(`grade_${studentId}`);
                 const instrumentInput = document.getElementById(`instrument_${studentId}`);
                 const numButtonsInput = document.getElementById(`numButtons_${studentId}`);
 
@@ -339,29 +364,39 @@
                 if (!studentNameInput.value.trim()) {
                     showMessage('Student name cannot be empty.', true);
                     studentNameInput.focus();
-                    return; // Stop submission
+                    validationFailed = true;
+                    return;
+                }
+                if (!gradeInput.value) {
+                    showMessage('Please select a grade for each student.', true);
+                    gradeInput.focus();
+                    validationFailed = true;
+                    return;
                 }
                 if (!instrumentInput.value.trim()) {
                     showMessage('Instrument cannot be empty.', true);
                     instrumentInput.focus();
-                    return; // Stop submission
+                    validationFailed = true;
+                    return;
                 }
                 if (parseInt(numButtonsInput.value) <= 0) {
                     showMessage('Number of buttons for each student must be greater than 0.', true);
                     numButtonsInput.focus();
-                    return; // Stop submission
+                    validationFailed = true;
+                    return;
                 }
 
                 const studentData = {
                     name: studentNameInput.value,
+                    grade: gradeInput.value,
                     instrument: instrumentInput.value,
                     numButtons: numButtonsInput.value
                 };
                 students.push(studentData);
             });
 
-            // If any student validation failed, the loop would have returned.
-            // So, if we are here, all student data is valid.
+            if (validationFailed) return;
+
             data['students'] = JSON.stringify(students); // Stringify to send as a single field
 
             // Final check for overall total
@@ -371,10 +406,7 @@
                 return; // Stop submission
             }
 
-
-            // Replace with your deployed Google Apps Script Web App URL
-            // IMPORTANT: You will get this URL after deploying your Google Apps Script (see instructions below)
-            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTOql8HPGBi0g7m3OK88MUCQn2lDFRFkGj7yMjsT8l0YAbb1wWNOjrbX2Z3sY2uG4A0w/exec'; // <<< IMPORTANT: REPLACE THIS!
+            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTOql8HPGBi0g7m3OK88MUCQn2lDFRFkGj7yMjsT8l0YAbb1wWNOjrbX2Z3sY2uG4A0w/exec';
 
             if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
                 showMessage('Please deploy your Google Apps Script and replace SCRIPT_URL with its URL.', true);
@@ -391,9 +423,7 @@
                     body: new URLSearchParams(data).toString()
                 });
 
-                // Since we use 'no-cors', we can't directly read the response status/body.
-                // Assume success if no network error.
-                showMessage('Order submitted successfully! You will be redirected to Square for payment shortly.'); // Updated message
+                showMessage('Order submitted successfully! You will be redirected to Square for payment shortly.');
                 form.reset(); // Clear the form
                 // Reset student entries to just one
                 document.getElementById('studentsContainer').innerHTML = `
@@ -401,6 +431,15 @@
                         <h3 class="text-lg font-medium text-gray-700 mb-2">Student 1</h3>
                         <label for="studentName_1">Student Name:</label>
                         <input type="text" id="studentName_1" name="studentName_1" required>
+
+                        <label for="grade_1">Grade:</label>
+                        <select id="grade_1" name="grade_1" required>
+                            <option value="" disabled selected>Select Grade</option>
+                            <option value="9th Grade">9th Grade</option>
+                            <option value="10th Grade">10th Grade</option>
+                            <option value="11th Grade">11th Grade</option>
+                            <option value="12th Grade">12th Grade</option>
+                        </select>
 
                         <label for="instrument_1">Instrument:</label>
                         <input type="text" id="instrument_1" name="instrument_1" required>
@@ -434,4 +473,3 @@
     </script>
 </body>
 </html>
-
